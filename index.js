@@ -32,6 +32,7 @@ function verifyJWT(req, res, next) {
 async function run() {
     try {
         const usersCollection = client.db('recycle').collection('users');
+        const categoriesCollection = client.db('recycle').collection('categories');
 
         app.get('/jwt', async (req, res) => {
             const email = req.query.email;
@@ -56,6 +57,13 @@ async function run() {
             console.log(user);
             const result = await usersCollection.insertOne(user);
             res.send(result);
+        });
+
+        app.get('/categories', async (req, res) => {
+            const query = {};
+            const categories = await categoriesCollection.find(query).toArray();
+            console.log(categories)
+            res.send(categories);
         });
     }
     finally {
