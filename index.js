@@ -79,18 +79,32 @@ async function run() {
             const user = await usersCollection.findOne(query);
             res.send({ isBuyer: user?.role === 'buyer' });
         });
+
         app.get('/users/seller/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email }
             const user = await usersCollection.findOne(query);
             res.send({ isSeller: user?.role === 'seller' });
         });
+
         app.get('/users/admin/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email }
             const user = await usersCollection.findOne(query);
             res.send({ isAdmin: user?.role === 'admin' });
-        })
+        });
+
+        app.get('/users/allseller', async (req, res) => {
+            const query = usersCollection.find({ role: 'seller' });
+            const users = await query.toArray();
+            res.send(users);
+        });
+
+        app.get('/users/allbuyer', async (req, res) => {
+            const query = usersCollection.find({ role: 'buyer' });
+            const users = await query.toArray();
+            res.send(users);
+        });
     }
     finally {
 
