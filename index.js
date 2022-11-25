@@ -26,21 +26,23 @@ function verifyJWT(req, res, next) {
             return res.status(403).send({ message: 'forbidden access' })
         }
         req.decoded = decoded;
+        next();
     })
+
 }
 
 async function run() {
     try {
         const usersCollection = client.db('recycle').collection('users');
         const categoriesCollection = client.db('recycle').collection('categories');
+        const productsCollection = client.db('recycle').collection('products');
 
         app.get('/jwt', async (req, res) => {
             const email = req.query.email;
             const query = { email: email };
-            console.log(query)
             const user = await usersCollection.findOne(query);
             if (user) {
-                const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+                const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10h' })
                 return res.send({ accessToken: token });
             }
             res.status(403).send({ accessToken: '' })
@@ -54,7 +56,6 @@ async function run() {
 
         app.post('/users', async (req, res) => {
             const user = req.body;
-            console.log(user);
             const result = await usersCollection.insertOne(user);
             res.send(result);
         });
@@ -62,8 +63,14 @@ async function run() {
         app.get('/categories', async (req, res) => {
             const query = {};
             const categories = await categoriesCollection.find(query).toArray();
-            console.log(categories)
             res.send(categories);
+        });
+
+        app.post('/products', verifyJWT, async (req, res) => {
+            const product = req.body;
+            console.log(product)
+            const result = await productsCollection.insertOne(product);
+            res.send(result);
         });
     }
     finally {
