@@ -105,6 +105,19 @@ async function run() {
             const users = await query.toArray();
             res.send(users);
         });
+
+        app.get('/myproducts', async (req, res) => {
+            const query = {};
+            const categories = await categoriesCollection.find(query).toArray();
+            res.send(categories);
+        });
+
+        app.get('/products/:email', async (req, res) => {
+            const email = req.params.sellMail;
+            const result = await productsCollection.find({ email: email }).toArray();
+            res.send(result);
+        });
+
     }
     finally {
 
