@@ -68,7 +68,6 @@ async function run() {
 
         app.post('/products', verifyJWT, async (req, res) => {
             const product = req.body;
-            console.log(product)
             const result = await productsCollection.insertOne(product);
             res.send(result);
         });
@@ -113,11 +112,18 @@ async function run() {
         });
 
         app.get('/products/:email', async (req, res) => {
-            const email = req.params.sellMail;
-            const result = await productsCollection.find({ email: email }).toArray();
-            res.send(result);
+            const email = req.params.email;
+            const result = await productsCollection.find().toArray();
+            const filterData = result.filter(p => p.email === email);
+            res.send(filterData);
         });
 
+        app.get('/category/:categoryName', async (req, res) => {
+            const cursor = req.params.categoryName;
+            const query = await productsCollection.find({}).toArray();
+            const filterData = query.filter(prod => prod.category === cursor);
+            res.send(filterData);
+        });
     }
     finally {
 
