@@ -36,6 +36,7 @@ async function run() {
         const usersCollection = client.db('recycle').collection('users');
         const categoriesCollection = client.db('recycle').collection('categories');
         const productsCollection = client.db('recycle').collection('products');
+        const ordersCollection = client.db('recycle').collection('orders');
 
         app.get('/jwt', async (req, res) => {
             const email = req.query.email;
@@ -114,7 +115,7 @@ async function run() {
         app.get('/products/:email', async (req, res) => {
             const email = req.params.email;
             const result = await productsCollection.find().toArray();
-            const filterData = result.filter(p => p.email === email);
+            const filterData = result.filter(p => p.sellerMail === email);
             res.send(filterData);
         });
 
@@ -122,6 +123,19 @@ async function run() {
             const cursor = req.params.categoryName;
             const query = await productsCollection.find({}).toArray();
             const filterData = query.filter(prod => prod.category === cursor);
+            res.send(filterData);
+        });
+
+        app.post('/orders', verifyJWT, async (req, res) => {
+            const product = req.body;
+            const result = await ordersCollection.insertOne(product);
+            res.send(result);
+        });
+
+        app.get('/orders/:email', async (req, res) => {
+            const email = req.params.email;
+            const result = await ordersCollection.find().toArray();
+            const filterData = result.filter(p => p.email === email);
             res.send(filterData);
         });
     }
