@@ -40,6 +40,7 @@ async function run() {
         const ordersCollection = client.db('recycle').collection('orders');
         const advertisementsCollection = client.db('recycle').collection('advertisements');
         const paymentsCollection = client.db('recycle').collection('payments');
+        const reportssCollection = client.db('recycle').collection('reports');
 
         app.get('/jwt', async (req, res) => {
             const email = req.query.email;
@@ -219,6 +220,47 @@ async function run() {
                 }
             }
             const updatedResult = await ordersCollection.updateOne(filter, updatedDoc)
+            res.send(result);
+        });
+
+        const verifyAdmin = async (req, res, next) => {
+            const decodedEmail = req.decoded.email;
+            const query = { email: decodedEmail };
+            const user = await usersCollection.findOne(query);
+
+            if (user?.role !== 'admin') {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
+            next();
+        };
+
+        app.put('/users/seller/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) }
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    status: 'Veryfied'
+                }
+            }
+            const result = await usersCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+        });
+
+        app.get('/veryfied/seller/:email', async (req, res) => {
+            const email = req.params.email;
+            const result = await usersCollection.findOne({ email: email });
+            if (result?.status === 'Veryfied') {
+                res.send(result);
+            }
+            else {
+                return;
+            }
+        });
+
+        app.post('/report-items', verifyJWT, async (req, res) => {
+            const product = req.body;
+            const result = await reportssCollection.insertOne(product);
             res.send(result);
         });
     }
