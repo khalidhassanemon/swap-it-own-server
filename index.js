@@ -8,6 +8,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.vrrg6hy.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -37,6 +38,8 @@ async function run() {
         const categoriesCollection = client.db('recycle').collection('categories');
         const productsCollection = client.db('recycle').collection('products');
         const ordersCollection = client.db('recycle').collection('orders');
+        const advertisementsCollection = client.db('recycle').collection('advertisements');
+        const paymentsCollection = client.db('recycle').collection('payments');
 
         app.get('/jwt', async (req, res) => {
             const email = req.query.email;
@@ -160,6 +163,64 @@ async function run() {
             res.send(result);
         });
 
+        app.post('/advertisements', verifyJWT, async (req, res) => {
+            const ad = req.body;
+            const result = await advertisementsCollection.insertOne(ad);
+            res.send(result);
+        });
+
+        app.get('/advertisements', async (req, res) => {
+            const query = {};
+            const result = await advertisementsCollection.find(query).sort({ _id: -1 }).toArray();
+            res.send(result);
+        });
+
+        app.get('/orders/payment/:id', async (req, res) => {
+            const id = req.params.id;
+            const result = await ordersCollection.find({ _id: ObjectId(id) }).toArray();
+            res.send(result);
+        });
+
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const booking = req.body;
+            console.log(booking);
+            const resalePrice = booking.price;
+
+            const amount = parseInt(resalePrice) * 100;
+            console.log(typeof (amount), amount)
+            if (amount) {
+                const paymentIntent = await stripe.paymentIntents.create({
+                    currency: 'usd',
+                    amount: amount,
+                    "payment_method_types": [
+                        "card"
+                    ]
+                });
+                res.send({
+                    clientSecret: paymentIntent.client_secret,
+                });
+
+            }
+            else {
+                return
+            }
+        });
+
+        app.post('/payments', async (req, res) => {
+            const payment = req.body;
+            console.log(payment)
+            const result = await paymentsCollection.insertOne(payment);
+            const id = payment.bookingId
+            const filter = { _id: ObjectId(id) }
+            const updatedDoc = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
+            }
+            const updatedResult = await ordersCollection.updateOne(filter, updatedDoc)
+            res.send(result);
+        });
     }
     finally {
 
