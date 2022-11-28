@@ -269,6 +269,25 @@ async function run() {
             const result = await reportssCollection.find(product).toArray();
             res.send(result);
         });
+
+        app.delete('/reported-products/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await reportssCollection.deleteOne(filter);
+            res.send(result);
+        });
+
+        app.patch('/stockout/:id', async (req, res) => {
+            const id = req.params.id;
+            const result = await productsCollection.updateOne({ _id: ObjectId(id) }, {
+                $set: {
+                    quantity: 0
+                }
+            })
+            if (result.modifiedCount) {
+                res.send(result);
+            }
+        })
     }
     finally {
 
