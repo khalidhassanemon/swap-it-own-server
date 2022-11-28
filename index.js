@@ -263,6 +263,12 @@ async function run() {
             const result = await reportssCollection.insertOne(product);
             res.send(result);
         });
+
+        app.get('/reports', async (req, res) => {
+            const product = req.body;
+            const result = await reportssCollection.find(product).toArray();
+            res.send(result);
+        });
     }
     finally {
 
