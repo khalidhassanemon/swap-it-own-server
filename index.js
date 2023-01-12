@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.vrrg6hy.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.vsbxkzu.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 function verifyJWT(req, res, next) {
@@ -34,13 +34,13 @@ function verifyJWT(req, res, next) {
 
 async function run() {
     try {
-        const usersCollection = client.db('recycle').collection('users');
-        const categoriesCollection = client.db('recycle').collection('categories');
-        const productsCollection = client.db('recycle').collection('products');
-        const ordersCollection = client.db('recycle').collection('orders');
-        const advertisementsCollection = client.db('recycle').collection('advertisements');
-        const paymentsCollection = client.db('recycle').collection('payments');
-        const reportssCollection = client.db('recycle').collection('reports');
+        const usersCollection = client.db('swap').collection('users');
+        const categoriesCollection = client.db('swap').collection('categories');
+        const productsCollection = client.db('swap').collection('products');
+        const ordersCollection = client.db('swap').collection('orders');
+        const advertisementsCollection = client.db('swap').collection('advertisements');
+        const paymentsCollection = client.db('swap').collection('payments');
+        const reportssCollection = client.db('swap').collection('reports');
 
         app.get('/jwt', async (req, res) => {
             const email = req.query.email;
@@ -296,9 +296,9 @@ async function run() {
 run().catch(console.log);
 
 app.get('/', async (req, res) => {
-    res.send("Recycle Zone API is running");
+    res.send("Swap IT API is running");
 })
 
 app.listen(port, () => {
-    console.log(`Recycle Zone API is running on PORT: ${port}`);
+    console.log(`Swap IT API is running on PORT: ${port}`);
 })
